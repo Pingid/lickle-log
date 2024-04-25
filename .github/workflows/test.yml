@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'pnpm'
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - name: install dependencies
+        run: pnpm install
+      - name: transpile typescript
+        run: pnpm build
+      - name: run tests
+        run: pnpm test

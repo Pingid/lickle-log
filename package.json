@@ -1,0 +1,45 @@
+{
+  "name": "@lickle/log",
+  "version": "0.0.0-alpha.0",
+  "description": "A tiny structured logging utility that includes, customizable transports, metadata.",
+  "main": "cjs/index.js",
+  "typings": "cjs/index.d.ts",
+  "module": "esm/index.mjs",
+  "author": "Dan Beaven <dm.beaven@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pingid/log"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm run -p '/build:.*/'",
+    "build:esm": "tsc -m esnext -t esnext --outDir esm",
+    "build:cjs": "tsc -m commonjs -t es5 --outDir cjs",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.2"
+  },
+  "files": [
+    "lib",
+    "src",
+    "README.md",
+    "package.json",
+    "!**/*.test.*",
+    "tsconfig.json"
+  ],
+  "keywords": [
+    "logging",
+    "logger",
+    "debug"
+  ],
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "all"
+  }
+}
