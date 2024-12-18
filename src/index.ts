@@ -3,7 +3,7 @@
  * This logger allows for different levels of logging and customization of the
  * logging behavior through context and transport mechanisms.
  */
-export interface Logger<T extends Record<string, any> = {}> {
+export interface Logger<T extends Record<string, any> = Record<string, any>> {
   /**
    * Configures the logger with custom transport and/or context.
    * @example
@@ -124,14 +124,14 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
   return logger
 }
 
-const defaultLogger: Logger<{}> = create({})
+const defaultLogger: Logger = create({})
 
-export const configure = defaultLogger.configure
-export const meta = defaultLogger.meta
-export const log = defaultLogger.log
-export const error = defaultLogger.error
-export const warn = defaultLogger.warn
-export const info = defaultLogger.info
-export const debug = defaultLogger.debug
+export const configure: Logger['configure'] = defaultLogger.configure
+export const meta: Logger['meta'] = defaultLogger.meta
+export const log: Logger['log'] = defaultLogger.log
+export const error: Logger['error'] = defaultLogger.error
+export const warn: Logger['warn'] = defaultLogger.warn
+export const info: Logger['info'] = defaultLogger.info
+export const debug: Logger['debug'] = defaultLogger.debug
 
 export default defaultLogger
