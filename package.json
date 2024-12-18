@@ -2,26 +2,24 @@
   "name": "@lickle/log",
   "version": "0.0.0-alpha.0",
   "description": "A tiny structured logging utility that includes, customizable transports, metadata.",
-  "main": "cjs/index.js",
-  "typings": "cjs/index.d.ts",
-  "module": "esm/index.mjs",
   "author": "Dan Beaven <dm.beaven@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/Pingid/log"
   },
   "license": "MIT",
-  "scripts": {
-    "build": "pnpm run -p '/build:.*/'",
-    "build:esm": "tsc -m esnext -t esnext --outDir esm",
-    "build:cjs": "tsc -m commonjs -t es5 --outDir cjs",
-    "test": "vitest"
-  },
-  "devDependencies": {
-    "@types/node": "^20.12.7",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.5",
-    "vitest": "^1.5.2"
+  "type": "module",
+  "main": "lib/cjs/index.js",
+  "typings": "lib/ts/index.d.ts",
+  "module": "lib/esm/index.mjs",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./lib/ts/index.d.ts",
+      "require": "./lib/cjs/index.js",
+      "module": "./lib/esm/index.js"
+    }
   },
   "files": [
     "lib",
@@ -36,6 +34,17 @@
     "logger",
     "debug"
   ],
+  "scripts": {
+    "build": "npm run esm && npm run cjs",
+    "esm": "tsc --module nodenext --outDir lib/esm",
+    "cjs": "tsc --module commonjs --outDir lib/cjs",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  },
   "prettier": {
     "semi": false,
     "singleQuote": true,

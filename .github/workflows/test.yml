@@ -11,14 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          cache: 'pnpm'
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
+      - uses: oven-sh/setup-bun@v2
+
       - name: install dependencies
-        run: pnpm install
+        run: bun install
       - name: transpile typescript
-        run: pnpm build
+        run: bun run build
       - name: run tests
-        run: pnpm test
+        run: bun run test

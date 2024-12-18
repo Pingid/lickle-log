@@ -16,10 +16,10 @@ export interface Logger<T extends Record<string, any> = {}> {
    * Extends the current logger metadata. This is useful for adding context-specific information
    * to logs that can help in debugging or tracing log entries.
    * @example
-   * logger.extend({ requestId: '12345' });
-   * logger.info`Processing request.`; // Includes requestId in the log meta
+   * logger.meta({ requestId: '12345' });
+   * logger.info`Processing request.`; // { msg: 'Processing request.', meta: { requestId: '12345' } }
    */
-  extend: (meta: Record<string, any>) => void
+  meta: (meta: Record<string, any>, replace?: boolean) => void
   /**
    * Logs a fatal-level message. Use this for unrecoverable system errors.
    * @example
@@ -106,8 +106,9 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
     configure: (c) => {
       _config = { ..._config, ...c } as any
     },
-    extend: (x) => {
-      _config.meta = { ..._config.meta, ...x } as any
+    meta: (x, replace) => {
+      if (replace) (_config as any).meta = x
+      else _config.meta = { ..._config.meta, ...x } as any
     },
     log: (t, ...subs) => log('log', t, subs),
     error: (t, ...subs) => log('error', t, subs),
@@ -118,14 +119,14 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
   return logger
 }
 
-const logger: Logger<{}> = create({})
+const defaultLogger: Logger<{}> = create({})
 
-export const configure = logger.configure
-export const extend = logger.extend
-export const log = logger.log
-export const error = logger.error
-export const warn = logger.warn
-export const info = logger.info
-export const debug = logger.debug
+export const configure = defaultLogger.configure
+export const meta = defaultLogger.meta
+export const log = defaultLogger.log
+export const error = defaultLogger.error
+export const warn = defaultLogger.warn
+export const info = defaultLogger.info
+export const debug = defaultLogger.debug
 
-export default logger
+export default defaultLogger

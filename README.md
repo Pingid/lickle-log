@@ -15,48 +15,75 @@ yarn add @lickle/log
 pnpm add @lickle/log
 ```
 
-## Usage
+## Install
 
-You can use the top level logger with default console based structured logger transport.
+Install the `@lickle/log` library using your preferred package manager:
 
-```typescript
-import log from '@lickle/log'
-
-log.debug`Initialised`
-
-log.debug({ userId: '...' })`user authenticated`
+```bash
+npm install @lickle/log
+yarn add @lickle/log
+pnpm add @lickle/log
 ```
 
-```typescript
-import { debug } from '@lickle/log'
+## Usage
 
-debug`Initialised`
+### Default Logger
+
+The default logger uses a console-based structured logger transport. Here's how to use it:
+
+```typescript
+import log from '@lickle/log';
+
+log.info`initialised`;
+// Output: { level: 'info', time: '...', msg: 'initialised' }
+
+log.info({ userId: '...' })`user authenticated`;
+// Output: { level: 'info', time: '...', msg: 'user authenticated', meta: { userId: '...' } }
+```
+
+### Adding Metadata
+
+You can add metadata to the logger using the `log.meta` method. Metadata fields are merged by default. To replace existing metadata, pass `true` as the second argument `log.meta({ ... }, true)`.
+
+```typescript
+import log from '@lickle/log';
+
+log.meta({ requestId: '123' });
+
+log.info`start`;
+// Output: { level: 'info', time: '...', msg: 'start', meta: { requestId: '123' } }
 ```
 
 ### Configuration
 
-Customize the top-level transport:
+#### Customizing the Transport
+
+Customize the transport function for the top-level logger as shown below:
 
 ```typescript
-import log from '@lickle/log'
+import log from '@lickle/log';
 
 log.configure({
-  meta: {},
   transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
-})
+});
 ```
 
-Create a new logger instance:
+#### Creating a New Logger Instance
+
+You can create a new logger instance with custom configurations:
 
 ```typescript
-import { create } from '@lickle/log'
+import { create } from '@lickle/log';
 
 const logger = create({
   meta: {},
   transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
-})
+});
 ```
 
 ## License
 
+This project is licensed under the MIT License.
+
 MIT © [Dan Beaven](https://github.com/Pingid)
+
