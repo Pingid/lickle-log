@@ -1,3 +1,9 @@
 node_modules
-esm
-cjs
+lib
+.npmrc
+
+# No dependencies so no lock file requirement
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
