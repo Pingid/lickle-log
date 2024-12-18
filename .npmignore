@@ -1,6 +1,2 @@
 .github
-node_modules
-src
 .gitignore
-build.js
-tsconfig.json
