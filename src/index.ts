@@ -62,6 +62,7 @@ export interface Log {
   /** Logging with additional metadata for structured logging. */
   (meta: Record<string, any>): {
     (template: { raw: readonly string[] | ArrayLike<string> }, ...substitutions: any[]): void
+    (message: string | number | null | boolean | Error): void
   }
   /** Logging with simple message strings without interpolation. */
   (message: string | number | null | boolean | Error): void
