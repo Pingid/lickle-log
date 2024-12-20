@@ -22,13 +22,19 @@ npm install @lickle/log
 The default logger uses a console-based structured logger transport. Here's how to use it:
 
 ```typescript
-import log from '@lickle/log';
+import log from '@lickle/log'
 
-log.info`initialised`;
+log.info`initialised`
 // Output: { level: 'info', time: '...', msg: 'initialised' }
 
-log.info({ userId: '...' })`user authenticated`;
+log.info({ userId: '...' })`user authenticated`
 // Output: { level: 'info', time: '...', msg: 'user authenticated', meta: { userId: '...' } }
+
+log.info('started tast')
+// Output: { level: 'info', time: '...', msg: 'started tast' }
+
+log.error(new Error('task failed'))
+// Output: { level: 'error', time: '...', msg: 'task failed', meta: { stack: '...' } }
 ```
 
 ### Adding Metadata
@@ -36,11 +42,11 @@ log.info({ userId: '...' })`user authenticated`;
 You can add metadata to the logger using the `log.meta` method. Metadata fields are merged by default. To replace existing metadata, pass `true` as the second argument `log.meta({ ... }, true)`.
 
 ```typescript
-import log from '@lickle/log';
+import log from '@lickle/log'
 
-log.meta({ requestId: '123' });
+log.meta({ requestId: '123' })
 
-log.info`start`;
+log.info`start`
 // Output: { level: 'info', time: '...', msg: 'start', meta: { requestId: '123' } }
 ```
 
@@ -51,11 +57,11 @@ log.info`start`;
 Customize the transport function for the top-level logger as shown below:
 
 ```typescript
-import log from '@lickle/log';
+import log from '@lickle/log'
 
 log.configure({
   transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
-});
+})
 ```
 
 #### Creating a New Logger Instance
@@ -63,12 +69,12 @@ log.configure({
 You can create a new logger instance with custom configurations:
 
 ```typescript
-import { create } from '@lickle/log';
+import { create } from '@lickle/log'
 
 const logger = create({
   meta: {},
   transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
-});
+})
 ```
 
 ## License
@@ -76,4 +82,3 @@ const logger = create({
 This project is licensed under the MIT License.
 
 MIT © [Dan Beaven](https://github.com/Pingid)
-

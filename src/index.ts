@@ -64,7 +64,7 @@ export interface Log {
     (template: { raw: readonly string[] | ArrayLike<string> }, ...substitutions: any[]): void
   }
   /** Logging with simple message strings without interpolation. */
-  (message: string | number | null | boolean): void
+  (message: string | number | null | boolean | Error): void
 }
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
@@ -92,16 +92,29 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
     String.raw(a as any, ...(subs ?? []).map((x) => (typeof x === 'string' ? x : JSON.stringify(x))))
 
   const log = (level: LogLevel, a: any, subs?: any[]): any => {
-    let lg = { level, msg: '' }
+    let lg: any = { level, msg: '' }
 
+    // Handle template literals
     if (Array.isArray(a) && Array.isArray((a as any).raw)) {
       lg.msg = template(a, subs)
-    } else if (typeof a === 'string') lg.msg = a
+    }
+    // Handle string
+    else if (typeof a === 'string' || typeof a === 'number' || typeof a === 'boolean' || a === null) lg.msg = a
+    // Handle error
+    else if (a instanceof Error) {
+      lg.msg = a.message
+      lg.meta = { ..._config.meta, stack: a.stack }
+      if (a.cause) lg.meta.cause = a.cause
+      if (a.name) lg.meta.name = a.name
+    }
+    // Handle object
     else if (typeof a === 'object' && !Array.isArray(a) && a !== null) {
       return create({ ..._config, meta: { ..._config?.meta, ...a } })[level]
-    } else lg.msg = JSON.stringify(a)
+    }
+    // Handle everything else
+    else lg.msg = JSON.stringify(a)
 
-    if (_config.meta) (lg as any).meta = _config.meta
+    if (_config.meta && !lg.meta) lg.meta = _config.meta
     _config.transport(lg)
   }
 
@@ -110,7 +123,6 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
       _config = { ..._config, ...c } as any
     },
     meta: (x, replace) => {
-      console.log(`replace: ${replace}`, config?.meta)
       if (!x && !(_config as any).meta) return
       if (replace) (_config as any).meta = x
       else _config.meta = { ..._config.meta, ...x } as any

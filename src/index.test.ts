@@ -25,3 +25,14 @@ it(`should handle basic string`, () => {
   log.debug('Test')
   expect(transport.mock.calls.flat()).toEqual([{ level: 'debug', msg: 'Test', meta: {} }])
 })
+
+it(`should handle error`, () => {
+  log.error(new Error('Test', { cause: 'test' }))
+  expect(transport.mock.calls.flat()).toEqual([
+    {
+      level: 'error',
+      msg: 'Test',
+      meta: { stack: expect.any(String), cause: 'test', name: 'Error' },
+    },
+  ])
+})
