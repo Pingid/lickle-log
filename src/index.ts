@@ -5,51 +5,53 @@
  */
 export interface Logger<T extends Record<string, any> = Record<string, any>> {
   /**
-   * Configures the logger with custom transport and/or context.
+   * The metadata associated with the logger. Useful for adding context-specific information
+   * to logs messages.
    * @example
-   * // Configure the global logger
-   * import { configure } from '@lickle/log'
-   * configure({ transport: (log)  => ... })
-   */
-  configure: <C extends Record<string, any> = {}>(config?: { meta?: C } & Partial<Config<T & C>>) => void
-  /**
-   * Extends the current logger metadata. This is useful for adding context-specific information
-   * to logs that can help in debugging or tracing log entries.
-   * @example
-   * logger.meta({ requestId: '12345' });
+   * logger.meta.requestId = '12345';
    * logger.info`Processing request.`; // { msg: 'Processing request.', meta: { requestId: '12345' } }
    */
-  meta: (meta: Record<string, any>, replace?: boolean) => void
+  meta: T
+
   /**
-   * Logs a fatal-level message. Use this for unrecoverable system errors.
+   * The transport function that outputs logs.
+   * @example
+   * logger.transport = (log) => {
+   *   console.log(`[${log.level.toUpperCase()}] ${log.msg}`, log.meta);
+   * };
+   */
+  transport: Transport<T>
+
+  /**
+   * Logs a message.
    * @example
    * logger.log`System crash; application will terminate.`;
    */
   log: Log
 
   /**
-   * Logs an error-level message. Ideal for runtime errors or unexpected conditions.
+   * Logs an error-level message.
    * @example
    * logger.error`Failed to load user data for user id ${userId}.`;
    */
   error: Log
 
   /**
-   * Logs a warning-level message. Use this for undesirable situations that are not errors.
+   * Logs a warning-level message.
    * @example
    * logger.warn`Deprecated API usage in module "authService".`;
    */
   warn: Log
 
   /**
-   * Logs an info-level message. Good for tracking the flow of the application under normal operation.
+   * Logs an info-level message.
    * @example
    * logger.info`User ${user.name} has logged in.`;
    */
   info: Log
 
   /**
-   * Logs a debug-level message. Useful for detailed debugging information.
+   * Logs a debug-level message.
    * @example
    * logger.debug`Fetching user list from database.`;
    */
@@ -57,38 +59,63 @@ export interface Logger<T extends Record<string, any> = Record<string, any>> {
 }
 
 export interface Log {
-  /** Logging with template literals for interpolated strings. */
+  /**
+   * Logs a message using template literals with interpolated strings.
+   * @example
+   * logger.log`Processing request with id ${requestId}`;
+   */
   (template: { raw: readonly string[] | ArrayLike<string> }, ...substitutions: any[]): void
-  /** Logging with additional metadata for structured logging. */
+
+  /**
+   * Logs a message with additional metadata for structured logging.
+   * @example
+   * logger.log({ requestId: '12345' })`Processing request.`;
+   */
   (meta: Record<string, any>): {
     (template: { raw: readonly string[] | ArrayLike<string> }, ...substitutions: any[]): void
     (message: string | number | null | boolean | Error): void
   }
-  /** Logging with simple message strings without interpolation. */
+
+  /**
+   * Logs a simple message without interpolation.
+   * @example
+   * logger.log('Application started successfully.');
+   */
   (message: string | number | null | boolean | Error): void
 }
 
 export type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'debug'
-type Transport<T extends Record<string, any> = { [x: string]: any }> = (log: {
+
+export type Transport<T extends Record<string, any> = { [x: string]: any }> = (log: {
   level: LogLevel
   msg: string
   meta?: T
 }) => void
 
-type Config<T extends Record<string, any>> = { meta?: T; transport: Transport<T> }
-
-export const defaultTransport: Transport = (log) => {
+const defaultTransport: Transport = (log) => {
   const m = { ...log, time: new Date().toISOString() }
   if (log.level in console) (console as any)[log.level](m)
   else console.log(m)
 }
 
-export const create = <C extends Record<string, any> = {}>(config?: Partial<Config<C>>): Logger<C> => {
-  let _config = {
-    meta: config?.meta,
-    transport: config?.transport ?? defaultTransport,
-  }
-
+/**
+ * Creates a new logger instance with the specified configuration.
+ * @param config - The configuration for the logger.
+ * @example
+ * const logger = create({
+ *   transport: (log) => {
+ *     if (process.env.NODE_ENV === 'dev') return console.log(log);
+ *     if (log.level === 'debug' && process.env.DEBUG) return console.log(log);
+ *     if (log.level === 'error') sendToServer(log);
+ *     console.log(log);
+ *   },
+ * });
+ * @returns A new logger instance.
+ */
+export const create = <C extends Record<string, any> = Record<string, any>>(config?: {
+  meta?: C
+  transport?: Transport<C>
+}): Logger<C> => {
   const template = (a: any, subs?: any[]) =>
     String.raw(a as any, ...(subs ?? []).map((x) => (typeof x === 'string' ? x : JSON.stringify(x))))
 
@@ -99,35 +126,30 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
     if (Array.isArray(a) && Array.isArray((a as any).raw)) {
       lg.msg = template(a, subs)
     }
+
     // Handle string
     else if (typeof a === 'string' || typeof a === 'number' || typeof a === 'boolean' || a === null) lg.msg = a
     // Handle error
     else if (a instanceof Error) {
       lg.msg = a.message
-      lg.meta = { ..._config.meta, stack: a.stack }
+      lg.meta = { ...logger.meta, stack: a.stack }
       if (a.cause) lg.meta.cause = a.cause
       if (a.name) lg.meta.name = a.name
     }
     // Handle object
     else if (typeof a === 'object' && !Array.isArray(a) && a !== null) {
-      return create({ ..._config, meta: { ..._config?.meta, ...a } })[level]
+      return create({ transport: logger.transport, meta: { ...logger?.meta, ...a } })[level]
     }
     // Handle everything else
     else lg.msg = JSON.stringify(a)
 
-    if (_config.meta && !lg.meta) lg.meta = _config.meta
-    _config.transport(lg)
+    if (logger.meta && !lg.meta) lg.meta = logger.meta
+    logger.transport(lg)
   }
 
   const logger: Logger<C> = {
-    configure: (c) => {
-      _config = { ..._config, ...c } as any
-    },
-    meta: (x, replace) => {
-      if (!x && !(_config as any).meta) return
-      if (replace) (_config as any).meta = x
-      else _config.meta = { ..._config.meta, ...x } as any
-    },
+    transport: config?.transport ?? defaultTransport,
+    meta: (config?.meta ?? {}) as C,
     log: (t, ...subs) => log('log', t, subs),
     error: (t, ...subs) => log('error', t, subs),
     warn: (t, ...subs) => log('warn', t, subs),
@@ -138,13 +160,5 @@ export const create = <C extends Record<string, any> = {}>(config?: Partial<Conf
 }
 
 const defaultLogger: Logger = create({})
-
-export const configure: Logger['configure'] = defaultLogger.configure
-export const meta: Logger['meta'] = defaultLogger.meta
-export const log: Logger['log'] = defaultLogger.log
-export const error: Logger['error'] = defaultLogger.error
-export const warn: Logger['warn'] = defaultLogger.warn
-export const info: Logger['info'] = defaultLogger.info
-export const debug: Logger['debug'] = defaultLogger.debug
 
 export default defaultLogger

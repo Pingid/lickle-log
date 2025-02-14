@@ -1,6 +1,6 @@
 {
   "name": "@lickle/log",
-  "version": "0.0.0-alpha.7",
+  "version": "0.0.1",
   "description": "A tiny structured logging utility that includes, customizable transports and metadata.",
   "author": "Dan Beaven <dm.beaven@gmail.com>",
   "repository": {
@@ -44,7 +44,7 @@
   "devDependencies": {
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.5"
+    "vitest": "^3.0.5"
   },
   "prettier": {
     "semi": false,
