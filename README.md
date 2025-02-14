@@ -37,44 +37,45 @@ log.error(new Error('task failed'))
 // Output: { level: 'error', time: '...', msg: 'task failed', meta: { stack: '...' } }
 ```
 
-### Adding Metadata
+#### Adding Metadata
 
-You can add metadata to the logger using the `log.meta` method. Metadata fields are merged by default. To replace existing metadata, pass `true` as the second argument `log.meta({ ... }, true)`.
+The logger's metadata is stored in the meta property. You can update it directly, and any additional metadata passed to a log call will be merged with this global metadata.
 
 ```typescript
 import log from '@lickle/log'
 
-log.meta({ requestId: '123' })
+log.meta['requestId'] = '123'
 
 log.info`start`
 // Output: { level: 'info', time: '...', msg: 'start', meta: { requestId: '123' } }
 ```
 
-### Configuration
-
 #### Customizing the Transport
 
-Customize the transport function for the top-level logger as shown below:
+Customize the transport function for the logger:
 
 ```typescript
 import log from '@lickle/log'
 
-log.configure({
-  transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
-})
+log.transport = (log) => {
+  if (log.level === 'error') sendToServer({ ...log, time: Date.now() })
+  console.log(`[${log.level.toUpperCase()}] ${log.msg}`, log.meta)
+}
 ```
 
-#### Creating a New Logger Instance
+### Creating a New Logger
 
 You can create a new logger instance with custom configurations:
 
 ```typescript
 import { create } from '@lickle/log'
 
-const logger = create({
-  meta: {},
+const log = create({
+  meta: { service: 'auth' },
   transport: (lg) => console[lg.level](`[${lg.time}] ${lg.msg}\n${JSON.stringify(lg.meta)}`),
 })
+
+log.info`foo`
 ```
 
 ## License
